@@ -76,7 +76,11 @@ class TgCall(PyTgCalls):
                 if media.video
                 else types.MediaStream.Flags.IGNORE
             ),
-            ffmpeg_parameters=f"-ss {seek_time}" if seek_time > 1 else None,
+            ffmpeg_parameters=(
+                (f"-ss {seek_time} " if seek_time > 1 else "")
+                + (f"-af {media.filter}" if media.filter else "")
+            ).strip()
+            or None,
         )
         try:
             await client.play(

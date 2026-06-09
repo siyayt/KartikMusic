@@ -84,6 +84,8 @@
     "play_skipped": "<b>Stream skipped by</b> {0}",
     "play_stopped": "<b>Stream ended by</b> {0}",
     "play_seeked": "<b>Stream skipped {0} and started from {1} seconds by</b> {2}",
+    "applying_effect": "Applying <b>{0}</b> effect, please wait...",
+    "effect_applied": "<b>{0}</b> effect applied by {1}",
     "play_expired": "This button has expired.",
     "play_unsupported": "Live streams are not supported.",
     "play_already_paused": "Do you remember that you resumed the stream?",

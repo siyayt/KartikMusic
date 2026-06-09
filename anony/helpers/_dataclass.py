@@ -16,6 +16,7 @@ class Media:
     title: str = None
     url: str = None
     time: int = 0
+    filter: str = None
     user: str = None
     video: bool = False
 
@@ -31,6 +32,7 @@ class Track:
     file_path: str = None
     message_id: int = 0
     time: int = 0
+    filter: str = None
     thumbnail: str = None
     user: str = None
     view_count: str = None
