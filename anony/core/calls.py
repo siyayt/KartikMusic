@@ -90,27 +90,35 @@ class TgCall(PyTgCalls):
             await message.edit_text(_lang["error_no_file"].format(config.SUPPORT_CHAT))
             return await self.play_next(chat_id)
 
-        stream = types.MediaStream(
-            media_path=media.file_path,
-            audio_parameters=types.AudioQuality.HIGH,
-            video_parameters=types.VideoQuality.HD_720p,
-            audio_flags=types.MediaStream.Flags.REQUIRED,
-            video_flags=(
-                types.MediaStream.Flags.AUTO_DETECT
-                if media.video
-                else types.MediaStream.Flags.IGNORE
-            ),
-            ffmpeg_parameters=(
-                (f"-ss {seek_time} " if seek_time > 1 else "")
-                + (f"-af {media.filter}" if media.filter else "")
-            ).strip()
-            or None,
-        )
-        try:
-            await client.play(
-                chat_id=chat_id,
-                stream=stream,
+        ffmpeg_params = (
+            (f"-ss {seek_time} " if seek_time > 1 else "")
+            + (f"-af {media.filter}" if media.filter else "")
+        ).strip()
+
+        if media.video:
+            stream = types.MediaStream(
+                media_path=media.file_path,
+                audio_parameters=types.AudioQuality.HIGH,
+                video_parameters=types.VideoQuality.HD_720p,
+                audio_flags=types.MediaStream.Flags.REQUIRED,
+                video_flags=types.MediaStream.Flags.AUTO_DETECT,
+                ffmpeg_parameters=ffmpeg_params or None,
             )
+        else:
+            stream = types.AudioPiped(
+                media_path=media.file_path,
+                audio_parameters=types.AudioQuality.HIGH,
+                ffmpeg_parameters=ffmpeg_params or None,
+            )
+
+        try:
+            if await db.get_call(chat_id):
+                try:
+                    await client.change_stream(chat_id, stream)
+                except Exception:
+                    await client.play(chat_id, stream)
+            else:
+                await client.play(chat_id, stream)
             media.played_at = time.time()
             if seek_time:
                 media.time = seek_time
@@ -170,7 +178,7 @@ class TgCall(PyTgCalls):
             await self.stop(chat_id)
             await message.edit_text(_lang["error_rtmp"])
         finally:
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(3)
             self.restarting[chat_id] -= 1
 
 
