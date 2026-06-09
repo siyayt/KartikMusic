@@ -74,19 +74,30 @@ async def _controls(_, query: types.CallbackQuery):
         if not media or pos == -1:
             return await query.edit_message_text(query.lang["play_expired"])
 
-        m_id = queue.get_current(chat_id).message_id
-        queue.force_add(chat_id, media, remove=pos)
-        try:
-            await app.delete_messages(
-                chat_id=chat_id, message_ids=[m_id, media.message_id], revoke=True
-            )
-            media.message_id = None
-        except Exception:
-            pass
+        current = queue.get_current(chat_id)
+        if current and current.message_id:
+            try:
+                await app.delete_messages(chat_id, current.message_id)
+            except Exception:
+                pass
 
-        msg = await app.send_message(chat_id=chat_id, text=query.lang["play_next"])
+        queue.force_add(chat_id, media, remove=pos)
+
+        msg = None
+        if media.message_id:
+            try:
+                msg = await app.get_messages(chat_id, media.message_id)
+                if not msg or not msg.id or msg.empty:
+                    msg = None
+            except Exception:
+                msg = None
+
+        if not msg:
+            msg = await app.send_message(chat_id=chat_id, text=query.lang["play_next"])
+
         if not media.file_path:
             media.file_path = await yt.download(media.id, video=media.video)
+
         media.message_id = msg.id
         return await anon.play_media(chat_id, msg, media)
 

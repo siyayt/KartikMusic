@@ -32,6 +32,12 @@ class TgCall(PyTgCalls):
 
     async def stop(self, chat_id: int) -> None:
         client = await db.get_assistant(chat_id)
+        media = queue.get_current(chat_id)
+        if media and media.message_id:
+            try:
+                await app.delete_messages(chat_id, media.message_id)
+            except Exception:
+                pass
         queue.clear(chat_id)
         await db.remove_call(chat_id)
         await db.set_loop(chat_id, 0)
@@ -105,7 +111,11 @@ class TgCall(PyTgCalls):
                         )
                     else:
                         await message.edit_text(text, reply_markup=keyboard)
-                except (ChatSendMediaForbidden, ChatSendPhotosForbidden, MessageIdInvalid):
+                except Exception:
+                    try:
+                        await message.delete()
+                    except Exception:
+                        pass
                     if _thumb:
                         sent = await app.send_photo(
                             chat_id=chat_id,
@@ -142,6 +152,11 @@ class TgCall(PyTgCalls):
             return
 
         media = queue.get_current(chat_id)
+        if media and media.message_id:
+            try:
+                await app.delete_messages(chat_id, media.message_id)
+            except Exception:
+                pass
         _lang = await lang.get_lang(chat_id)
         msg = await app.send_message(chat_id=chat_id, text=_lang["play_again"])
         media.message_id = msg.id
@@ -153,30 +168,42 @@ class TgCall(PyTgCalls):
             await db.set_loop(chat_id, loop - 1)
             return await self.replay(chat_id)
 
-        media = queue.get_next(chat_id)
-        try:
-            if media.message_id:
-                await app.delete_messages(
-                    chat_id=chat_id,
-                    message_ids=media.message_id,
-                    revoke=True,
-                )
-                media.message_id = 0
-        except Exception:
-            pass
+        current = queue.get_current(chat_id)
+        if current and current.message_id:
+            try:
+                await app.delete_messages(chat_id, current.message_id)
+            except Exception:
+                pass
 
+        media = queue.get_next(chat_id)
         if not media:
             return await self.stop(chat_id)
 
         _lang = await lang.get_lang(chat_id)
-        msg = await app.send_message(chat_id=chat_id, text=_lang["play_next"])
+        msg = None
+        if media.message_id:
+            try:
+                msg = await app.get_messages(chat_id, media.message_id)
+                if not msg or not msg.id or msg.empty:
+                    msg = None
+            except Exception:
+                msg = None
+
+        if not msg:
+            msg = await app.send_message(chat_id=chat_id, text=_lang["play_next"])
+
         if not media.file_path:
             media.file_path = await yt.download(media.id, video=media.video)
             if not media.file_path:
                 await self.play_next(chat_id)
-                return await msg.edit_text(
-                    _lang["error_no_file"].format(config.SUPPORT_CHAT)
-                )
+                if msg:
+                    try:
+                        return await msg.edit_text(
+                            _lang["error_no_file"].format(config.SUPPORT_CHAT)
+                        )
+                    except Exception:
+                        pass
+                return
 
         media.message_id = msg.id
         await self.play_media(chat_id, msg, media)
