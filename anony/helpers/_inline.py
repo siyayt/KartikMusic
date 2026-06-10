@@ -26,6 +26,7 @@ class Inline:
         more: bool = False,
         autoplay: bool = None,
         thumb: bool = None,
+        lang: dict = None,
     ) -> types.InlineKeyboardMarkup:
         keyboard = []
         if status:
@@ -74,7 +75,10 @@ class Inline:
                     ]
                 )
                 keyboard.append(
-                    [self.ikb(text="Close ✘", callback_data=f"controls close {chat_id}")]
+                    [
+                        self.ikb(text=lang["add_me"] if lang else "Add Me", url=f"https://t.me/{app.username}?startgroup=true"),
+                        self.ikb(text="Close ✘", callback_data=f"controls close {chat_id}"),
+                    ]
                 )
         return self.ikm(keyboard)
 
@@ -89,12 +93,20 @@ class Inline:
                 ]
             ]
         else:
+            rows = [
+                [
+                    self.ikb(
+                        text=_lang["add_me"],
+                        url=f"https://t.me/{app.username}?startgroup=true",
+                    )
+                ]
+            ]
             cbs = ["admins", "auth", "blist", "lang", "ping", "play", "queue", "stats", "sudo", "thumb", "vclog", "autoplay"]
             buttons = [
                 self.ikb(text=_lang[f"help_{i}"], callback_data=f"help {cb}")
                 for i, cb in enumerate(cbs)
             ]
-            rows = [buttons[i : i + 3] for i in range(0, len(buttons), 3)]
+            rows += [buttons[i : i + 3] for i in range(0, len(buttons), 3)]
             rows.append(
                 [
                     self.ikb(text=_lang["back"], callback_data="help home"),
