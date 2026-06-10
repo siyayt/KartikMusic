@@ -4,7 +4,7 @@
 
 
 import re
-
+import time
 from pyrogram import enums, errors, filters, types
 
 from anony import anon, app, db, lang, queue, tg, yt
@@ -101,6 +101,33 @@ async def _controls(_, query: types.CallbackQuery):
         await anon.stop(chat_id)
         status = query.lang["stopped"]
         reply = query.lang["play_stopped"].format(user)
+
+    elif action == "seek":
+        if not await db.playing(chat_id):
+            return await query.answer(
+                query.lang["play_already_paused"], show_alert=True
+            )
+
+        media = queue.get_current(chat_id)
+        if not media or not media.duration_sec:
+            return await query.answer(
+                query.lang["play_seek_no_dur"], show_alert=True
+            )
+
+        to_seek = int(args[3])
+        current_pos = int((time.time() - media.played_at) + media.time)
+        new_pos = current_pos + to_seek
+
+        if new_pos < 1:
+            new_pos = 1
+        elif new_pos + 10 > media.duration_sec:
+            new_pos = media.duration_sec - 5
+
+        await anon.play_media(chat_id, query.message, media, new_pos)
+        media.time = new_pos
+        return await query.answer(
+            f"Seeked to {new_pos}s", show_alert=True
+        )
 
     elif action == "close":
         try:

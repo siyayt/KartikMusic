@@ -45,6 +45,12 @@ class Inline:
                 ]
             )
             keyboard.append(
+                [
+                    self.ikb(text="-20s", callback_data=f"controls seek {chat_id} -20"),
+                    self.ikb(text="+20s", callback_data=f"controls seek {chat_id} 20"),
+                ]
+            )
+            keyboard.append(
                 [self.ikb(text="Close ✘", callback_data=f"controls close {chat_id}")]
             )
         return self.ikm(keyboard)

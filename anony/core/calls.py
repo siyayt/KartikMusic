@@ -109,6 +109,13 @@ class TgCall(PyTgCalls):
         )
 
         try:
+            await client.play(
+                chat_id=chat_id,
+                stream=stream,
+                config=types.GroupCallConfig(auto_start=False),
+            )
+            media.played_at = time.time()
+            if not seek_time:
             if await db.get_call(chat_id):
                 try:
                     logger.info(f"Changing stream for {chat_id} with params: {ffmpeg_params}")
