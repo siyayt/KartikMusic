@@ -245,7 +245,10 @@ class YouTube:
 
     async def get_related(self, video_id: str, video: bool = False) -> Track | None:
         try:
-            results = await Recommendations.getRelated(video_id)
+            _results = await Recommendations.getRelated(video_id)
+            if not isinstance(_results, dict):
+                return None
+            results = _results.get("result")
             if results:
                 # Filter for only video types and pick a random one
                 videos = [r for r in results if r.get("type") == "video"]
