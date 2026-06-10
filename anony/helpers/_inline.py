@@ -124,6 +124,7 @@ class Inline:
         admin_only: bool,
         cmd_delete: bool,
         autoplay: bool,
+        vclogger: bool,
         thumbnail: bool,
         language: str,
         chat_id: int,
@@ -158,6 +159,15 @@ class Inline:
                     ),
                     self.ikb(
                         text=_on if autoplay else _off, callback_data="settings autoplay"
+                    ),
+                ],
+                [
+                    self.ikb(
+                        text=lang["vclogger"] + " ➜",
+                        callback_data="settings",
+                    ),
+                    self.ikb(
+                        text=_on if vclogger else _off, callback_data="settings vclog"
                     ),
                 ],
                 [

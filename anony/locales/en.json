@@ -146,6 +146,7 @@
     "paused": "Stream paused",
     "cmd_delete": "Command delete",
     "autoplay": "Autoplay",
+    "vclogger": "VC Logger",
     "thumbnail": "Thumbnail",
     "play_mode": "Admin only play",
     "playing": "Playing",

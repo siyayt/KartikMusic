@@ -206,6 +206,7 @@ async def _settings_cb(_, query: types.CallbackQuery):
     _admin = await db.get_play_mode(chat_id)
     _delete = await db.get_cmd_delete(chat_id)
     _autoplay = await db.get_autoplay(chat_id)
+    _vclog = await db.get_vclogger(chat_id)
     _thumbnail = await db.get_thumb_mode(chat_id)
     _language = await db.get_lang(chat_id)
 
@@ -218,6 +219,9 @@ async def _settings_cb(_, query: types.CallbackQuery):
     elif cmd[1] == "autoplay":
         _autoplay = not _autoplay
         await db.set_autoplay(chat_id, _autoplay)
+    elif cmd[1] == "vclog":
+        _vclog = not _vclog
+        await db.set_vclogger(chat_id, _vclog)
     elif cmd[1] == "thumb":
         _thumbnail = not _thumbnail
         await db.set_thumb_mode(chat_id, _thumbnail)
@@ -228,6 +232,7 @@ async def _settings_cb(_, query: types.CallbackQuery):
             _admin,
             _delete,
             _autoplay,
+            _vclog,
             _thumbnail,
             _language,
             chat_id,
