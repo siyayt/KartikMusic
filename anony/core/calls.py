@@ -274,7 +274,28 @@ class TgCall(PyTgCalls):
     async def decorators(self, client: PyTgCalls) -> None:
         @client.on_update()
         async def update_handler(_, update: types.Update) -> None:
-            if isinstance(update, types.StreamEnded):
+            if isinstance(update, types.UpdatedGroupCallParticipant):
+                if not await db.get_vclogger(update.chat_id):
+                    return
+                try:
+                    user = await app.get_users(update.participant.user_id)
+                except Exception:
+                    return
+
+                _lang = await lang.get_lang(update.chat_id)
+                if update.action == types.GroupCallParticipant.Action.JOINED:
+                    text = _lang["vclog_joined"].format(user.mention, user.id)
+                elif update.action == types.GroupCallParticipant.Action.LEFT:
+                    text = _lang["vclog_left"].format(user.mention, user.id)
+                else:
+                    return
+
+                try:
+                    await app.send_message(update.chat_id, text)
+                except Exception:
+                    pass
+
+            elif isinstance(update, types.StreamEnded):
                 if update.stream_type == types.StreamEnded.Type.AUDIO:
                     if self.restarting.get(update.chat_id):
                         return

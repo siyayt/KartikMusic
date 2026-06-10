@@ -26,6 +26,7 @@ class MongoDB:
         self.cmd_delete = []
         self.thumb_mode = []
         self.autoplay = []
+        self.vclogger = {}
         self.loop = {}
         self.notified = []
         self.cache = self.db.cache
@@ -300,6 +301,21 @@ class MongoDB:
         await self.chatsdb.update_one(
             {"_id": chat_id},
             {"$set": {"autoplay": status}},
+            upsert=True,
+        )
+
+    # VCLOGGER METHODS
+    async def get_vclogger(self, chat_id: int) -> bool:
+        if chat_id not in self.vclogger:
+            doc = await self.chatsdb.find_one({"_id": chat_id})
+            self.vclogger[chat_id] = bool(doc and doc.get("vclogger"))
+        return self.vclogger[chat_id]
+
+    async def set_vclogger(self, chat_id: int, status: bool = False) -> None:
+        self.vclogger[chat_id] = status
+        await self.chatsdb.update_one(
+            {"_id": chat_id},
+            {"$set": {"vclogger": status}},
             upsert=True,
         )
 
