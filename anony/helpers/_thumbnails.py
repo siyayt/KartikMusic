@@ -92,7 +92,7 @@ class Thumbnail:
 
             draw = ImageDraw.Draw(bg)
             draw.text(
-                (835, 315), "Jerry Bots", fill=(192, 192, 192), font=self.nfont
+                (835, 315), "Aashik Bot", fill=(192, 192, 192), font=self.nfont
             )
             draw.text(
                 (835, 355),
