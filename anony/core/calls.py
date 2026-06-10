@@ -112,12 +112,7 @@ class TgCall(PyTgCalls):
             if seek_time:
                 await client.play(chat_id, stream)
             elif await db.get_call(chat_id):
-                try:
-                    logger.info(f"Changing stream for {chat_id} with params: {ffmpeg_params}")
-                    await client.change_stream(chat_id, stream)
-                except Exception as e:
-                    logger.error(f"Error in change_stream: {e}")
-                    await client.play(chat_id, stream)
+                await client.play(chat_id, stream)
             else:
                 await client.play(chat_id, stream)
 
@@ -271,6 +266,13 @@ class TgCall(PyTgCalls):
         return round(sum(pings) / len(pings), 2)
 
 
+    async def _delete_msg(self, message: Message, delay: int = 2):
+        await asyncio.sleep(delay)
+        try:
+            await message.delete()
+        except Exception:
+            pass
+
     async def decorators(self, client: PyTgCalls) -> None:
         @client.on_update()
         async def update_handler(_, update: types.Update) -> None:
@@ -292,8 +294,7 @@ class TgCall(PyTgCalls):
 
                 try:
                     sent = await app.send_message(update.chat_id, text)
-                    await asyncio.sleep(2)
-                    await sent.delete()
+                    asyncio.create_task(self._delete_msg(sent))
                 except Exception:
                     pass
 
