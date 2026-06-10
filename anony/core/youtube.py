@@ -13,7 +13,7 @@ import urllib.parse
 from pathlib import Path
 from typing import Union
 
-from py_yt import Playlist, VideosSearch
+from py_yt import Playlist, VideosSearch, Recommendations
 
 from anony import logger
 from anony.helpers import Track, utils
@@ -242,6 +242,30 @@ class YouTube:
         except Exception as e:
             logger.error(f"Prefetch failed for {link}: {e}")
         return False
+
+    async def get_related(self, video_id: str, video: bool = False) -> Track | None:
+        try:
+            results = await Recommendations.getRelated(video_id)
+            if results:
+                # Filter for only video types and pick a random one
+                videos = [r for r in results if r.get("type") == "video"]
+                if not videos:
+                    return None
+                data = random.choice(videos)
+                return Track(
+                    id=data.get("id"),
+                    channel_name=data.get("channel", {}).get("name"),
+                    duration=data.get("duration"),
+                    duration_sec=utils.to_seconds(data.get("duration") or "00:00"),
+                    title=data.get("title")[:25],
+                    thumbnail=data.get("thumbnails", [{}])[-1].get("url").split("?")[0],
+                    url=data.get("link"),
+                    user="Autoplay",
+                    video=video,
+                )
+        except Exception as e:
+            logger.error(f"Error fetching related videos: {e}")
+        return None
 
     async def download(self, video_id: str, video: bool = False) -> str | None:
         url = self.base + video_id

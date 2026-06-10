@@ -211,7 +211,17 @@ class TgCall(PyTgCalls):
 
         media = queue.get_next(chat_id)
         if not media:
-            return await self.stop(chat_id)
+            if await db.get_autoplay(chat_id):
+                if current and isinstance(current, Track):
+                    media = await yt.get_related(current.id, video=current.video)
+                    if media:
+                        queue.add(chat_id, media)
+                    else:
+                        return await self.stop(chat_id)
+                else:
+                    return await self.stop(chat_id)
+            else:
+                return await self.stop(chat_id)
 
         _lang = await lang.get_lang(chat_id)
         msg = None

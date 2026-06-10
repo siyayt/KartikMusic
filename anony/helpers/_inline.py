@@ -117,10 +117,13 @@ class Inline:
         lang: dict,
         admin_only: bool,
         cmd_delete: bool,
+        autoplay: bool,
         thumbnail: bool,
         language: str,
         chat_id: int,
     ) -> types.InlineKeyboardMarkup:
+        _on = "Enabled ✅"
+        _off = "Disabled ❌"
         return self.ikm(
             [
                 [
@@ -128,21 +131,37 @@ class Inline:
                         text=lang["play_mode"] + " ➜",
                         callback_data="settings",
                     ),
-                    self.ikb(text=admin_only, callback_data="settings play"),
+                    self.ikb(
+                        text=_on if admin_only else _off, callback_data="settings play"
+                    ),
                 ],
                 [
                     self.ikb(
                         text=lang["cmd_delete"] + " ➜",
                         callback_data="settings",
                     ),
-                    self.ikb(text=cmd_delete, callback_data="settings delete"),
+                    self.ikb(
+                        text=_on if cmd_delete else _off,
+                        callback_data="settings delete",
+                    ),
+                ],
+                [
+                    self.ikb(
+                        text=lang["autoplay"] + " ➜",
+                        callback_data="settings",
+                    ),
+                    self.ikb(
+                        text=_on if autoplay else _off, callback_data="settings autoplay"
+                    ),
                 ],
                 [
                     self.ikb(
                         text=lang["thumbnail"] + " ➜",
                         callback_data="settings",
                     ),
-                    self.ikb(text=thumbnail, callback_data="settings thumb"),
+                    self.ikb(
+                        text=_on if thumbnail else _off, callback_data="settings thumb"
+                    ),
                 ],
                 [
                     self.ikb(
