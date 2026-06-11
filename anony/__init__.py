@@ -32,7 +32,7 @@ boot = time.time()
 from KartikMusic.core.bot import Bot
 app = Bot()
 
-from anony.core.dir import ensure_dirs
+from KartikMusic.core.dir import ensure_dirs
 ensure_dirs()
 
 from anony.core.userbot import Userbot
