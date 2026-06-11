@@ -70,13 +70,13 @@ class Inline:
                 keyboard.append(
                     [
                         self.ikb(text="-20s", callback_data=f"controls seek {chat_id} -20"),
-                        self.ikb(text="More ➜", callback_data=f"controls more {chat_id}"),
+                        self.ikb(text="More", callback_data=f"controls more {chat_id}"),
                         self.ikb(text="+20s", callback_data=f"controls seek {chat_id} 20"),
                     ]
                 )
                 keyboard.append(
                     [
-                        self.ikb(text=lang["add_me"] if lang else "Add Me", url=f"https://t.me/{app.username}?startgroup=true"),
+                        self.ikb(text=lang["add_mee"] if lang else "Add Me", url=f"https://t.me/{app.username}?startgroup=true"),
                         self.ikb(text="Close ✘", callback_data=f"controls close {chat_id}"),
                     ]
                 )
