@@ -19,10 +19,16 @@ class Thumbnail:
             self.font_title = ImageFont.truetype("anony/helpers/Raleway-Bold.ttf", 55)
             self.font_artist = ImageFont.truetype("anony/helpers/Inter-Light.ttf", 35)
             self.font_time = ImageFont.truetype("anony/helpers/Inter-Light.ttf", 25)
+            self.font_4k = ImageFont.truetype("anony/helpers/Raleway-Bold.ttf", 80)
+            self.font_overlay_artist = ImageFont.truetype("anony/helpers/Raleway-Bold.ttf", 60)
+            self.font_overlay_song = ImageFont.truetype("anony/helpers/Inter-Light.ttf", 30)
         except:
             self.font_title = ImageFont.load_default()
             self.font_artist = ImageFont.load_default()
             self.font_time = ImageFont.load_default()
+            self.font_4k = ImageFont.load_default()
+            self.font_overlay_artist = ImageFont.load_default()
+            self.font_overlay_song = ImageFont.load_default()
 
     def _make_sq(self, im, radius=60):
         """Creates a rounded square image."""
@@ -51,11 +57,49 @@ class Thumbnail:
 
         # 2. Thumbnail image (Left)
         if thumb_path and os.path.exists(thumb_path):
-            thumb = Image.open(thumb_path)
+            thumb = Image.open(thumb_path).convert("RGBA")
         else:
-            thumb = Image.new("RGB", (520, 520), (40, 40, 40))
+            thumb = Image.new("RGBA", (520, 520), (40, 40, 40, 255))
 
         thumb = thumb.resize((520, 520))
+
+        # Add overlay on thumb
+        overlay = Image.new("RGBA", (520, 520), (0, 0, 0, 0))
+        overlay_draw = ImageDraw.Draw(overlay)
+        # Blueish translucent overlay on the left
+        overlay_draw.rectangle([0, 0, 220, 520], fill=(0, 70, 140, 160))
+
+        # Artist name on overlay
+        artist_upper = str(artist).upper()
+        y_off = 60
+        words = artist_upper.split()
+        for word in words[:3]:
+            if len(word) > 8: word = word[:8]
+            overlay_draw.text((30, y_off), word, font=self.font_overlay_artist, fill="white")
+            y_off += 70
+
+        # Song title (small) on overlay
+        title_upper = str(title).upper()
+        title_lines = []
+        words = title_upper.split()
+        line = ""
+        for word in words:
+            if len(line + " " + word) < 12:
+                line += " " + word
+            else:
+                title_lines.append(line.strip())
+                line = word
+        title_lines.append(line.strip())
+
+        y_off += 10
+        for line in title_lines[:2]:
+            overlay_draw.text((30, y_off), line, font=self.font_overlay_song, fill=(220, 220, 220))
+            y_off += 40
+
+        # 4K text at the bottom
+        overlay_draw.text((30, 410), "4K", font=self.font_4k, fill="white")
+
+        thumb.alpha_composite(overlay)
         thumb = self._make_sq(thumb, radius=60)
         background.paste(thumb, (70, 100), thumb)
 
