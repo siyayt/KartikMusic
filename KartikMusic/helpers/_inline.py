@@ -3,7 +3,8 @@
 # This file is part of KartikMusic
 
 
-from pyrogram import types
+import random
+from pyrogram import enums, types
 
 from KartikMusic import app, config, lang
 from KartikMusic.core.lang import lang_codes
@@ -12,7 +13,17 @@ from KartikMusic.core.lang import lang_codes
 class Inline:
     def __init__(self):
         self.ikm = types.InlineKeyboardMarkup
-        self.ikb = types.InlineKeyboardButton
+
+    def ikb(self, text: str, **kwargs) -> types.InlineKeyboardButton:
+        styles = [
+            enums.ButtonStyle.DANGER,
+            enums.ButtonStyle.PRIMARY,
+            enums.ButtonStyle.SUCCESS,
+            enums.ButtonStyle.DEFAULT,
+        ]
+        return types.InlineKeyboardButton(
+            text=text, style=random.choice(styles), **kwargs
+        )
 
     def cancel_dl(self, text) -> types.InlineKeyboardMarkup:
         return self.ikm([[self.ikb(text=text, callback_data=f"cancel_dl")]])
@@ -70,13 +81,13 @@ class Inline:
                 keyboard.append(
                     [
                         self.ikb(text="-20s", callback_data=f"controls seek {chat_id} -20"),
-                        self.ikb(text="More ➜", callback_data=f"controls more {chat_id}"),
+                        self.ikb(text="More", callback_data=f"controls more {chat_id}"),
                         self.ikb(text="+20s", callback_data=f"controls seek {chat_id} 20"),
                     ]
                 )
                 keyboard.append(
                     [
-                        self.ikb(text=lang["add_me"] if lang else "Add Me", url=f"https://t.me/{app.username}?startgroup=true"),
+                        self.ikb(text=lang["add_mee"] if lang else "Add Me", url=f"https://t.me/{app.username}?startgroup=true"),
                         self.ikb(text="Close ✘", callback_data=f"controls close {chat_id}"),
                     ]
                 )
