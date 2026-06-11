@@ -1,4 +1,4 @@
-name: The Alone Repo CI
+name: The Alone Repo 
 
 on:
   push:
