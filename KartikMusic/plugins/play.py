@@ -1,7 +1,12 @@
-# Copyright (c) 2025 AnonymousX1025
-# Licensed under the MIT License.
-# This file is part of KartikMusic
-
+#
+# Copyright (C) 2025-present by TheAloneTeam@Github, < https://github.com/TheAloneTeam >.
+#
+# This file is part of < https://github.com/TheAloneTeam/KartikMusic > project,
+# and is released under the "MIT License".
+# Please see < https://github.com/TheAloneTeam/KartikMusic/blob/master/LICENSE >
+#
+# All rights reserved.
+#
 
 from pathlib import Path
 

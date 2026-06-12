@@ -1,9 +1,24 @@
+#
+# Copyright (C) 2025-present by TheAloneTeam@Github, < https://github.com/TheAloneTeam >.
+#
+# This file is part of < https://github.com/TheAloneTeam/KartikMusic > project,
+# and is released under the "MIT License".
+# Please see < https://github.com/TheAloneTeam/KartikMusic/blob/master/LICENSE >
+#
+# All rights reserved.
+#
+
 [project]
 name = "KartikMusic"
 version = "3.0.3"
-description = "Telegram Group Calls Streaming bot with some useful features."
+description = "A powerful Telegram Music Bot for Group Voice Chats, supporting high-quality audio and video streaming."
 readme = ".github/README.md"
 requires-python = ">=3.10"
+keywords = ["telegram", "music-bot", "voice-chat", "python", "pyrogram", "kartik-music"]
+
+[project.urls]
+Homepage = "https://github.com/TheAloneTeam/KartikMusic"
+Repository = "https://github.com/TheAloneTeam/KartikMusic"
 
 dependencies = [
     "aiohttp~=3.14.0",

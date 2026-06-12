@@ -1,8 +1,15 @@
 {
     "name": "Kartik Music",
-    "description": "A Telegram Music Player Bot, written in Python with Pyrogram and Py-Tgcalls.",
+    "description": "A powerful Telegram Music Bot for Group Voice Chats, supporting high-quality audio and video streaming.",
     "logo": "https://te.legra.ph/file/b8a0c1a00db3e57522b53.jpg",
-    "keywords": ["python3", "telegram", "bot", "music-bot"],
+    "keywords": [
+        "telegram",
+        "music-bot",
+        "voice-chat",
+        "python",
+        "pyrogram",
+        "kartik-music"
+    ],
     "stack": "container",
     "env": {
         "API_ID": {
