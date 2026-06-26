@@ -30,6 +30,7 @@ class TgCall(PyTgCalls):
     def __init__(self):
         self.clients = []
         self.restarting = defaultdict(int)
+        self.prefetch_tasks = {}
 
     async def pause(self, chat_id: int) -> bool:
         client = await db.get_assistant(chat_id)
@@ -52,7 +53,48 @@ class TgCall(PyTgCalls):
 
         return await client.resume(chat_id)
 
+    async def _prepare_next(self, chat_id: int) -> None:
+        try:
+            while await db.get_call(chat_id):
+                media = queue.get_current(chat_id)
+                if not media or not media.duration_sec:
+                    break
+
+                played_sec = media.time
+                if media.played_at:
+                    played_sec += int(time.time() - media.played_at)
+
+                remaining = media.duration_sec - played_sec
+
+                if remaining <= 15:
+                    next_media = queue.get_next(chat_id, check=True)
+                    if not next_media and await db.get_autoplay(chat_id):
+                        if isinstance(media, Track):
+                            max_duration = min(int(media.duration_sec * 1.5), 900)
+                            next_media = await yt.get_related(
+                                media.id, video=media.video, max_duration=max_duration
+                            )
+                            if next_media:
+                                queue.add(chat_id, next_media)
+
+                    if next_media and not next_media.file_path:
+                        next_media.file_path = await yt.download(
+                            next_media.id, video=next_media.video
+                        )
+                    break
+
+                await asyncio.sleep(5)
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logger.error(f"Error in prefetch for {chat_id}: {e}")
+        finally:
+            self.prefetch_tasks.pop(chat_id, None)
+
     async def stop(self, chat_id: int) -> None:
+        if task := self.prefetch_tasks.pop(chat_id, None):
+            task.cancel()
+
         client = await db.get_assistant(chat_id)
         media = queue.get_current(chat_id)
         if media and media.message_id:
@@ -76,6 +118,9 @@ class TgCall(PyTgCalls):
         media: Media | Track,
         seek_time: int = 0,
     ) -> None:
+        if task := self.prefetch_tasks.pop(chat_id, None):
+            task.cancel()
+
         self.restarting[chat_id] += 1
         if await db.get_call(chat_id):
             await asyncio.sleep(0.5)
@@ -165,6 +210,10 @@ class TgCall(PyTgCalls):
                             reply_markup=keyboard,
                         )
                     media.message_id = sent.id
+
+            self.prefetch_tasks[chat_id] = asyncio.create_task(
+                self._prepare_next(chat_id)
+            )
         except FileNotFoundError:
             await message.edit_text(_lang["error_no_file"].format(config.SUPPORT_CHAT))
             await self.play_next(chat_id)
@@ -229,17 +278,18 @@ class TgCall(PyTgCalls):
 
                     # Set max duration for autoplay tracks based on current song
                     # but capped at 15 minutes to avoid extremely long tracks
-                    max_duration = min(int(current.duration_sec * 1.5), 900)
-                    media = await yt.get_related(
-                        current.id, video=current.video, max_duration=max_duration
-                    )
-                    if media:
-                        queue.add(chat_id, media)
-                        # We need to call get_next to remove the old track from queue
-                        media = queue.get_next(chat_id)
-                        if not media:
-                            return
+                    # Use existing next item if it was pre-fetched
+                    media = queue.get_next(chat_id)
+                    if not media:
+                        max_duration = min(int(current.duration_sec * 1.5), 900)
+                        media = await yt.get_related(
+                            current.id, video=current.video, max_duration=max_duration
+                        )
+                        if media:
+                            queue.add(chat_id, media)
+                            media = queue.get_next(chat_id)
 
+                    if media:
                         if not media.file_path:
                             media.file_path = await yt.download(
                                 media.id, video=media.video
